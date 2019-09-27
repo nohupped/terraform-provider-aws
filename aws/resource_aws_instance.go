@@ -22,6 +22,7 @@ import (
 )
 
 func resourceAwsInstance() *schema.Resource {
+	var user_data_global string
 	return &schema.Resource{
 		Create: resourceAwsInstanceCreate,
 		Read:   resourceAwsInstanceRead,
@@ -138,12 +139,23 @@ func resourceAwsInstance() *schema.Resource {
 				StateFunc: func(v interface{}) string {
 					switch v := v.(type) {
 					case string:
+						user_data_global = v
 						return userDataHashSum(v)
 					default:
 						return ""
 					}
 				},
 				ValidateFunc: validation.StringLenBetween(0, 16384),
+			},
+
+			"user_data_param_rendered": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      false,
+				ConflictsWith: []string{"user_data_base64"},
+				StateFunc: func(v interface{}) string {
+					return user_data_global
+				},
 			},
 
 			"user_data_base64": {
