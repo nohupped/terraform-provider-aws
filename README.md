@@ -2,7 +2,7 @@ Terraform Provider
 ==================
 
 
-- Note: This is a [fork](https://github.com/terraform-providers/terraform-provider-aws).
+- **Note:** This is a [fork](https://github.com/terraform-providers/terraform-provider-aws).
   - This was forked to add one more optional field `user_data_param_rendered` for `aws_instance` resource. 
   - This field is Optional and modifying this field doesn't force a new resource creation.
   - Rather than showing a checksum of the user_data, this fork will render the output as the value of `user_data_param_rendered` key.
