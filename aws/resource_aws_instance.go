@@ -142,6 +142,7 @@ func resourceAwsInstance() *schema.Resource {
 						user_data_global = v
 						return userDataHashSum(v)
 					default:
+						user_data_global = ""
 						return ""
 					}
 				},
