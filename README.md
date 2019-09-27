@@ -1,6 +1,39 @@
 Terraform Provider
 ==================
 
+
+- Note: This is a [fork](https://github.com/terraform-providers/terraform-provider-aws).
+  - This was forked to add one more field `user_data_param_rendered` for `aws_instance` resource. 
+  - Rather than showing a checksum of the user_data, this fork will render the output as the value of `user_data_param_rendered` key.
+  
+  - Example: 
+  
+  ```hcl
+  resource "aws_instance" "some_instance" {
+  ami                    = "${data.aws_ami.some_ami.id}"
+  instance_type          = "t2.small"
+  iam_instance_profile   = "${var.instance_profile}"
+  user_data_param_rendered = "" // ** Yes, this has to be explicitely defined. **
+  user_data = <<EOF
+  #cloud-config
+  bootcmd:
+  - echo "===========starting userdata=========="
+  - export FQDN=${format("server02d.%s", count.index + 1, var.r53_zone_name)}
+  - hostname $FQDN
+  - hostname > /etc/hostname
+  EOF
+  ---------  snip  ---------
+  }
+  ```
+  - Output: 
+  ```bash
+   ~ module.some_module.aws_instance.some_instance[1]
+      user_data_param_rendered: "" =>  "#cloud-config\nbootcmd:\n  - echo \"===========starting userdata==========\"\n  - export FQDN=server01.some-r53-zone-name.com\n  - hostname $FQDN\n hostname > /etc/hostname\n"
+  
+  ```
+**`user_data_param_rendered` is not atomic. Since the value of the field `user_data` of type `map[string]*schema.Schema` needs to be shown at another field `user_data_param_rendered`, a lame attempt is made using a variable of type string global to `resourceAwsInstance` function inside `terraform-provider-aws/aws/resource_aws_instance.go`, and because of no atomicity, interpolated values like `count.index` in user_data cannot be relied upon. This will affect only if `count > 1`. If there is a way we can get the value of count.index which is stored somewhere in any of the Resource schemas or through any of the helper functions, we can use it to store it in a slice and get it by the index. As of now, I cannot find a documentation that states this with my limited knowledge.**
+
+
 - Website: https://www.terraform.io
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
